@@ -34,15 +34,23 @@ app.get('/', function (req, res) {
   });
 });
 
+// about page 
+app.get('/about', function (req, res) {
+  res.render('pages/about');
+});
+
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
-// about page 
-app.get('/about', function (req, res) {
-  res.render('pages/about');
+app.get("/urls/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL;
+  let templateVars = { longURL: urlDatabase[shortURL], shortURL:shortURL }
+  res.render("urls_show", templateVars);
 });
+
+
 
 // app.get("/urls.json", (req, res) => {
 //   res.json(urlDatabase);
