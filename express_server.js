@@ -34,6 +34,11 @@ app.get('/', function (req, res) {
   });
 });
 
+app.get("/urls", (req, res) => {
+  let templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
 // about page 
 app.get('/about', function (req, res) {
   res.render('pages/about');
