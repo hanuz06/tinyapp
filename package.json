@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon ./express_server.js"
+    "start": "nodemon -L ./express_server.js localhost 8080"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/hanuz06/tinyapp#readme",
   "dependencies": {
+    "ejs": "^2.7.1",
     "express": "^4.17.1",
     "nodemon": "^1.19.4"
   }
