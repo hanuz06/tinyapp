@@ -14,7 +14,7 @@ function generateRandomString() {
   let num = '';
   for (let i = 0; i < 6; i++) {
     num += String.fromCharCode(Math.floor(Math.random() * (122 - 48) + 48));
-  }  
+  }
   return num;
 }
 generateRandomString();
@@ -23,6 +23,7 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+console.log('urlDatabase ',urlDatabase)
 
 app.get("/urls", (req, res) => {
   let templateVars = {
@@ -37,17 +38,26 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
-  let url =[]
+  let url = [];
+  let shortURL = generateRandomString();
+  let longURL = req.body.longURL;
+
+  if (!longURL.includes('http') || !longURL.includes('https')) {
+    longURL = 'https://'.concat(longURL);
+  } else {
+    longURL;
+  }
+
   for (let i in urlDatabase) {
-    if (urlDatabase[i] !== req.body.longURL) {
+    if (urlDatabase[i] !== longURL) {
       url;
     } else {
       url.push(urlDatabase[i]);
-    }    
+    }
   }
-  url.length === 0?  urlDatabase[generateRandomString()] = req.body.longURL: console.log("The URL already exists");
+  url.length === 0 ? urlDatabase[shortURL] = longURL : console.log("The URL already exists");
   console.log(urlDatabase);
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -57,6 +67,15 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: shortURL
   }
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  console.log(longURL)
+  if (longURL) {
+    res.redirect(longURL);
+  }
 });
 
 
