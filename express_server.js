@@ -23,7 +23,7 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-console.log('urlDatabase ',urlDatabase)
+console.log('urlDatabase ',urlDatabase);
 
 app.get("/urls", (req, res) => {
   let templateVars = {
@@ -42,7 +42,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL;
 
-  if (!longURL.includes('http') || !longURL.includes('https')) {
+  if (!longURL.startsWith('http://') || !longURL.startsWith('https://')) {
     longURL = 'https://'.concat(longURL);
   } else {
     longURL;
@@ -65,14 +65,14 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     longURL: urlDatabase[shortURL],
     shortURL: shortURL
-  }
+  };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  console.log(longURL)
+  console.log(longURL);
   if (longURL) {
     res.redirect(longURL);
   }
