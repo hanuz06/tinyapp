@@ -1,55 +1,63 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080;
+const bodyParser = require("body-parser");
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
+
+function generateRandomString() {
+  let num = '';
+  for (let i = 0; i < 6; i++) {
+    num += String.fromCharCode(Math.floor(Math.random() * (122 - 48) + 48));
+  }  
+  return num;
+}
+generateRandomString();
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-// index page 
-// index page 
-app.get('/', function (req, res) {
-  var drinks = [{
-      name: 'Bloody Mary',
-      drunkness: 3
-    },
-    {
-      name: 'Martini',
-      drunkness: 5
-    },
-    {
-      name: 'Scotch',
-      drunkness: 10
-    }
-  ];
-  var tagline = "Any code of your own that you haven't looked at for six or more months might as well have been written by someone else.";
-
-  res.render('pages/index', {
-    drinks: drinks,
-    tagline: tagline
-  });
-});
-
-// about page 
-app.get('/about', function (req, res) {
-  res.render('pages/about');
-});
-
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  //console.log(req.body); // Log the POST request body to the console
+  let url =[]
+  for (let i in urlDatabase) {
+    if (urlDatabase[i] !== req.body.longURL) {
+      url;
+    } else {
+      url.push(urlDatabase[i]);
+    }    
+  }
+  url.length === 0?  urlDatabase[generateRandomString()] = req.body.longURL: console.log("The URL already exists");
+  console.log(urlDatabase);
+  res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  let templateVars = { longURL: urlDatabase[shortURL], shortURL:shortURL }
+  let templateVars = {
+    longURL: urlDatabase[shortURL],
+    shortURL: shortURL
+  }
   res.render("urls_show", templateVars);
 });
-
 
 
 // app.get("/urls.json", (req, res) => {
