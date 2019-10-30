@@ -12,14 +12,14 @@ app.use(cookieParser());
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
-function generateRandomString() {
-  str = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let generateRandomString = () => {
+  let str = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let num = '';
   for (let i = 0; i < 6; i++) {
     num += str[Math.floor(Math.random() * (62 - 1) + 1)];
   }
   return num;
-}
+};
 //generateRandomString();
 
 const urlDatabase = {
@@ -45,7 +45,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  
+
   //console.log(req.body); // Log the POST request body to the console
   let url = [];
   let shortURL = generateRandomString();
@@ -79,10 +79,10 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//Delete 
+//Delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   console.log(req.params.shortURL);
-  delete urlDatabase[req.params.shortURL]
+  delete urlDatabase[req.params.shortURL];
   let templateVars = {
     username: req.cookies["username"],
     urls: urlDatabase
@@ -120,17 +120,16 @@ app.get("/u/:shortURL", (req, res) => {
 
 //login
 app.post("/urls/login", (req, res) => {
-  
+
   res.cookie('username', req.body.username);
-  //console.log('Cookies: ', req.cookies)
 
   res.redirect("/urls");
 });
 
 //logout
-app.post("/urls/logout", (req, res) => {  
+app.post("/urls/logout", (req, res) => {
+
   res.clearCookie('username', req.body.username);
-  //console.log('Cookies: ', req.cookies)
 
   res.redirect("/urls");
 });
