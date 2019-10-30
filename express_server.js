@@ -2,22 +2,25 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080;
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(cookieParser());
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
 function generateRandomString() {
+  str = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let num = '';
   for (let i = 0; i < 6; i++) {
-    num += String.fromCharCode(Math.floor(Math.random() * (122 - 48) + 48));
+    num += str[Math.floor(Math.random() * (62 - 1) + 1)];
   }
   return num;
 }
-generateRandomString();
+//generateRandomString();
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -27,16 +30,22 @@ console.log('urlDatabase ', urlDatabase);
 
 app.get("/urls", (req, res) => {
   let templateVars = {
+    username: req.cookies["username"],
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
+  
   //console.log(req.body); // Log the POST request body to the console
   let url = [];
   let shortURL = generateRandomString();
@@ -63,6 +72,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   let templateVars = {
+    username: req.cookies["username"],
     longURL: urlDatabase[shortURL],
     shortURL: shortURL
   };
@@ -74,6 +84,25 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   console.log(req.params.shortURL);
   delete urlDatabase[req.params.shortURL]
   let templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
+
+  res.render("urls_index", templateVars);
+});
+
+//update
+app.post("/urls/:shortURL/edit", (req, res) => {
+  let longURL = req.body.longURL;
+  if (!longURL.startsWith('http://') && !longURL.startsWith('https://')) {
+    longURL = 'https://'.concat(longURL);
+  } else {
+    longURL;
+  }
+
+  urlDatabase[req.params.shortURL] = longURL;
+  let templateVars = {
+    username: req.cookies["username"],
     urls: urlDatabase
   };
 
@@ -88,6 +117,24 @@ app.get("/u/:shortURL", (req, res) => {
     res.redirect(longURL);
   }
 });
+
+//login
+app.post("/urls/login", (req, res) => {
+  
+  res.cookie('username', req.body.username);
+  //console.log('Cookies: ', req.cookies)
+
+  res.redirect("/urls");
+});
+
+//logout
+app.post("/urls/logout", (req, res) => {  
+  res.clearCookie('username', req.body.username);
+  //console.log('Cookies: ', req.cookies)
+
+  res.redirect("/urls");
+});
+
 
 
 // app.get("/urls.json", (req, res) => {
