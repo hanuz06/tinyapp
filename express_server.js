@@ -20,7 +20,21 @@ let generateRandomString = () => {
   }
   return num;
 };
-//generateRandomString();
+
+//users database
+const users = {
+  // "userRandomID": {
+  //   id: "userRandomID",
+  //   email: "user@example.com",
+  //   password: "purple-monkey-dinosaur"
+  // },
+  // "user2RandomID": {
+  //   id: "user2RandomID",
+  //   email: "user2@example.com",
+  //   password: "dishwasher-funk"
+  // }
+
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -79,7 +93,7 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//Delete
+//delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   console.log(req.params.shortURL);
   delete urlDatabase[req.params.shortURL];
@@ -109,6 +123,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
@@ -134,7 +149,30 @@ app.post("/urls/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+//registration
+app.get("/register", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_registration", templateVars);
+});
 
+//registration handler
+app.post("/register", (req, res) => {
+  let userEmail = req.body.email;
+  console.log("Email ", userEmail)
+  let userPassword = req.body.password;
+  console.log("Password ", userPassword)
+  let newUserID = generateRandomString();
+
+  users[newUserID]={};
+  users[newUserID].id = newUserID;
+  users[newUserID].email = userEmail;
+  users[newUserID].password = userPassword;  
+  res.cookie('username', newUserID);
+  console.log("users ",users)
+  res.redirect("/urls");
+});
 
 // app.get("/urls.json", (req, res) => {
 //   res.json(urlDatabase);

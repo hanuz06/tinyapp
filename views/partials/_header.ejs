@@ -15,18 +15,20 @@
       <% if (username){ %>
       <form class="form-inline" action="/urls/logout" method="POST">
         <span class="align-middle" style='margin-right: 10px;'>Logged in as <%= username %></span>
-        <div class="form-group mb-2">          
+        <div class="form-group mb-2">
           <button type="submit" class="btn btn-outline-dark">Logout</button>
         </div>
       </form>
       <% } else { %>
-      <form class="form-inline" action="/urls/login" method="POST">        
+      <form class="form-inline" action="/urls/login" method="POST">
         <div class="form-group mb-2">
           <input class="form-control" type="text" name="username" placeholder="Username"
             style="width: 300px; margin: 1em" autofocus>
           <button type="submit" class="btn btn-outline-dark">Login</button>
+          <button type="submit" class="btn btn-outline-dark" formaction="/register" formmethod="GET"
+          style="margin-left: 10px;text-decoration: none;">Register</button>
         </div>
       </form>
-      <% } %> 
+      <% } %>
   </nav>
 </header>
