@@ -2,20 +2,15 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-let morgan = require('morgan');
 const bcrypt = require('bcrypt');
 const {
   getUserByEmail
 } = require('./helpers');
 
-morgan(':method :url :status :res[content-length] - :response-time ms');
-
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['andrey']
@@ -29,7 +24,7 @@ const users = {
   "npaMvY": {
     id: "npaMvY",
     email: "ali@mail.ru",
-    password: "123456"
+    password: "123"
   }
 };
 
@@ -66,8 +61,7 @@ const longURLVal = (urlDatabase, cookie) => {
   return newLongURL;
 };
 
-
-let generateRandomString = () => {
+const generateRandomString = () => {
   let str = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let num = '';
   for (let i = 0; i < 6; i++) {
@@ -99,6 +93,7 @@ app.get("/urls", (req, res) => {
     };
     res.render("urls_index", templateVars);
   } else {
+    console.log("You need to log in to use services.");
     res.redirect('/login');
   }
 });
@@ -114,6 +109,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+//add a new url
 app.post("/urls", (req, res) => {
   let url = [];
   let shortURL = generateRandomString();
@@ -171,10 +167,10 @@ app.get("/urls/:shortURL", (req, res) => {
     if (isShortURLValid) {
       res.render("urls_show", templateVars);
     } else {
-      res.status(403).send("<h2>You do not have this URL</h2>");
+      res.status(404).send("<h2>You do not have this URL</h2>");
     }
   } else {
-    res.status(403).send("<h2>You need to login first</h2>");
+    res.status(404).send("<h2>You need to login first</h2>");
   }
 
 });
@@ -193,7 +189,7 @@ app.post("/urls/:id/delete", (req, res) => {
       res.status(403).send("<h2>Deletion no allowed</h2>");
     }
   } else {
-    res.status(403).send("<h2>You need to login first</h2>");
+    res.status(404).send("<h2>You need to login first</h2>");
   }
 });
 
@@ -219,7 +215,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     }
     isURLValid ? res.redirect("/urls") : res.status(403).send("<h2>You doesn't own this URL</h2>");
   } else {
-    res.status(403).send("<h2>Please login first</h2>");
+    res.status(404).send("<h2>Please login first</h2>");
   }
 });
 
@@ -236,7 +232,7 @@ app.get("/u/:shortURL", (req, res) => {
   if (longURL) {
     res.redirect(longURL);
   } else {
-    res.status(403).send("<h2>URL doesn't exist</h2>");
+    res.status(404).send("<h2>URL doesn't exist</h2>");
   }
 });
 
@@ -265,14 +261,13 @@ app.post("/login", (req, res) => {
   if (userID) {
     emailFound = true;
   } else {
-    res.status(403).send("<h2>Email doesn't exist</h2>");
+    res.status(404).send("<h2>Email doesn't exist</h2>");
   }
 
   let hashedPassword = users[userID].password;
   if (emailFound) {
 
     if (bcrypt.compareSync(userPassword, hashedPassword)) {
-      console.log('users[userID].password ', users[userID].password);
       req.session["user_id"] = userID;
       res.redirect('/urls');
     } else {
