@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 let morgan = require('morgan');
+const bcrypt = require('bcrypt');
 
 morgan(':method :url :status :res[content-length] - :response-time ms');
 
@@ -202,8 +203,6 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 //redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
-  // const cookie = req.cookies["user_id"];
-  // const longURL = longURLVal(urlDatabase, cookie);
   const longURL = urlDatabase[req.params.shortURL].longURL;
   if (longURL) {
     res.redirect(longURL);
@@ -223,21 +222,29 @@ app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userPassword = req.body.password;
   let userID = '';
+  let emailFound = false;
 
   if (isEmailExists(userEmail)) {
     for (let user in users) {
       if (users[user].email === userEmail) {
+        emailFound = true;
         userID = user;
-        if (users[userID].password === userPassword) {
-          res.cookie('user_id', userID);
-          res.redirect('/urls');
-        } else {
-          res.status(403).send("<h2>Password is not correct</h2>");
-        }
       }
     }
   } else {
     res.status(403).send("<h2>Email doesn't exist</h2>");
+  }
+
+  let hashedPassword = users[userID].password;
+  if (emailFound) {
+
+    if (bcrypt.compareSync(userPassword, hashedPassword)) {
+      console.log('users[userID].password ', users[userID].password);
+      res.cookie('user_id', userID);
+      res.redirect('/urls');
+    } else {
+      res.status(403).send("<h2>Password is not correct</h2>");
+    }
   }
 });
 
@@ -272,7 +279,8 @@ app.post("/register", (req, res) => {
   users[newUserID] = {};
   users[newUserID].id = newUserID;
   users[newUserID].email = userEmail;
-  users[newUserID].password = userPassword;
+  users[newUserID].password = bcrypt.hashSync(userPassword, 10);
+  console.log("users[newUserID].password, ", users[newUserID].password);
   res.cookie('user_id', newUserID);
 
   res.redirect("/urls");
