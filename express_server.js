@@ -19,7 +19,7 @@ app.use(cookieSession({
 
 app.set('view engine', 'ejs');
 
-//users database
+//users database; below entry is left to show how each user entry will look like
 const users = {
   "npaMvY": {
     id: "npaMvY",
@@ -28,13 +28,10 @@ const users = {
   }
 };
 
+//below entry is left to show how url entry will look like
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW"
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
     userID: "aJ48lW"
   }
 };
