@@ -18,15 +18,15 @@ TinyApp is a full stack web application built by Andrey Li with Node and Express
 - body-parser
 - cookie-session
 
-## Dev Dpendencies
+## Dev Dependencies
 
-- nodemo
+- nodemon
 - chai
 - mocha
 
 ## Getting Started
 
 - Install all dependencies (using the `npm install` command).
-- Run the development web server using the `npm start` command.
-- Open a web browser, type in address bar 'http://localhost:8080/', and you should see the login page
+- Run the development web server using the `npm start` command in terminal.
+- Open a web browser, in address bar type 'http://localhost:8080/', and you should see the login page.
 - To test with mocha/chai, via terminal go to test folder and type 'npm test'

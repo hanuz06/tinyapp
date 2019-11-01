@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const moment = require('moment');
 const {
   getUserByEmail
 } = require('./helpers');
@@ -16,7 +17,6 @@ app.use(cookieSession({
   keys: ['andrey']
 }));
 
-// set the view engine to ejs
 app.set('view engine', 'ejs');
 
 //users database
@@ -115,6 +115,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL;
   const cookie = req.session.user_id;
+  const time = moment().subtract(6, 'hours').format("D MMM YYYY, H:m");
 
   if (cookie) {
     if (!longURL.startsWith('http://') && !longURL.startsWith('https://')) {
@@ -135,6 +136,7 @@ app.post("/urls", (req, res) => {
       urlDatabase[shortURL] = {};
       urlDatabase[shortURL].longURL = longURL;
       urlDatabase[shortURL].userID = cookie;
+      urlDatabase[shortURL].time = time;
     } else {
       res.status(403).send("<h2>The URL already exists</h2>");
     }
@@ -150,24 +152,38 @@ app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   let newDataBase = urlsForUser(urlDatabase, cookie);
   let isShortURLValid = false;
+  let shortURLExists = false;
+  
+  //returns true if the short URL exists in general database
+  for (let url in urlDatabase) {
+    if (url === shortURL) {
+      shortURLExists = true;
+    }
+  }
 
-  let templateVars = {
-    user: users[cookie],
-    longURL: longURLVal(urlDatabase, cookie),
-    shortURL: shortURL
-  };
+  if (!shortURLExists) {
+    res.status(404).send("<h2>Requested link does not exist</h2>");
+  }
 
+  //returns true if the short URL exists in database of links for logged in user
   for (let url in newDataBase) {
     if (url === shortURL) {
       isShortURLValid = true;
     }
   }
 
+  let templateVars = {
+    user: users[cookie],
+    longURL: longURLVal(urlDatabase, cookie),
+    shortURL: shortURL,
+    time: newDataBase[shortURL].time
+  };
+
   if (cookie) {
     if (isShortURLValid) {
       res.render("urls_show", templateVars);
     } else {
-      res.status(404).send("<h2>You do not have this URL</h2>");
+      res.status(404).send("<h2>You do not own this URL</h2>");
     }
   } else {
     res.status(404).send("<h2>You need to login first</h2>");
@@ -199,11 +215,13 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
   if (cookie) {
     let longURL = req.body.longURL;
+
     if (!longURL.startsWith('http://') && !longURL.startsWith('https://')) {
       longURL = 'https://'.concat(longURL);
     } else {
       longURL;
     }
+
     urlDatabase[req.params.shortURL].longURL = longURL;
     let newDataBase = urlsForUser(urlDatabase, cookie);
     let isURLValid = false;
@@ -266,7 +284,6 @@ app.post("/login", (req, res) => {
 
   let hashedPassword = users[userID].password;
   if (emailFound) {
-
     if (bcrypt.compareSync(userPassword, hashedPassword)) {
       req.session["user_id"] = userID;
       res.redirect('/urls');
@@ -307,7 +324,7 @@ app.post("/register", (req, res) => {
     res.redirect('/urls');
   } else {
     if (!userEmail || !userPassword) {
-      res.status(403).send("<h2>Email or password needed</h2>");
+      res.status(403).send("<h2>Email or password missing</h2>");
     }
 
     let userID = getUserByEmail(userEmail, users);

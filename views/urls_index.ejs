@@ -24,6 +24,7 @@
             <th scope="col">Long URL</th>
             <th scope="col">Edit</th>
             <th scope="col">Delete</th>
+            <th scope="col">Created on</th>
           </tr>
         </thead>
         <tbody>
@@ -41,6 +42,7 @@
                 <button type="submit" class="btn btn-outline-danger">Delete</button>
               </form>
             </td>
+            <td><%= urls[url].time %></td>
           </tr>
           <% } %>
         </tbody>
