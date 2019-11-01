@@ -6,7 +6,10 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const moment = require('moment');
 const {
-  getUserByEmail
+  getUserByEmail,
+  urlsForUser,
+  longURLVal,
+  generateRandomString
 } = require('./helpers');
 
 app.use(bodyParser.urlencoded({
@@ -34,37 +37,6 @@ const urlDatabase = {
     longURL: "https://www.tsn.ca",
     userID: "aJ48lW"
   }
-};
-
-//returns URL list of logged in user
-const urlsForUser = (urlDatabase, cookie) => {
-  let newObj = {};
-  for (let item in urlDatabase) {
-    if (urlDatabase[item].userID === cookie) {
-      newObj[item] = urlDatabase[item];
-    }
-  }
-  return newObj;
-};
-
-//finds long URL based on cookie
-const longURLVal = (urlDatabase, cookie) => {
-  let newLongURL = '';
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === cookie) {
-      newLongURL = urlDatabase[shortURL].longURL;
-    }
-  }
-  return newLongURL;
-};
-
-const generateRandomString = () => {
-  let str = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let num = '';
-  for (let i = 0; i < 6; i++) {
-    num += str[Math.floor(Math.random() * (62 - 1) + 1)];
-  }
-  return num;
 };
 
 //renders the front page
