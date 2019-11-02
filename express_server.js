@@ -23,21 +23,10 @@ app.use(cookieSession({
 app.set('view engine', 'ejs');
 
 //users database; below entry is left to show how each user entry will look like
-const users = {
-  "npaMvY": {
-    id: "npaMvY",
-    email: "ali@mail.ru",
-    password: "123"
-  }
-};
+const users = {};
 
 //below entry is left to show how url entry will look like
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW"
-  }
-};
+const urlDatabase = {};
 
 //renders the front page
 app.get("/", (req, res) => {
@@ -62,7 +51,6 @@ app.get("/urls", (req, res) => {
     };
     res.render("urls_index", templateVars);
   } else {
-    console.log("You need to log in to use services.");
     res.redirect('/login');
   }
 });
@@ -87,25 +75,30 @@ app.post("/urls", (req, res) => {
   const time = moment().subtract(6, 'hours').format("D MMM YYYY, H:m");
 
   if (cookie) {
-    if (!longURL.startsWith('http://') && !longURL.startsWith('https://')) {
+    if (!longURL) {
+      res.status(400).send("<h2>Please enter URL</h2>");
+    }
+
+    if (longURL !== '' && !longURL.startsWith('http://') && !longURL.startsWith('https://')) {
       longURL = 'https://'.concat(longURL);
     } else {
       longURL;
     }
 
     for (let i in urlDatabase) {
-      if (urlDatabase[i].longURL === longURL && urlDatabase[i].userID === cookie) {
+      if (longURL === '', urlDatabase[i].longURL === longURL && urlDatabase[i].userID === cookie) {
         url.push(urlDatabase[i].longURL);
       } else {
         url;
       }
     }
 
-    if (url.length === 0) {
-      urlDatabase[shortURL] = {};
-      urlDatabase[shortURL].longURL = longURL;
-      urlDatabase[shortURL].userID = cookie;
-      urlDatabase[shortURL].time = time;
+    if (longURL !== '' && url.length === 0) {
+      urlDatabase[shortURL] = {
+        longURL: longURL,
+        userID: cookie,
+        time: time
+      };
     } else {
       res.status(403).send("<h2>The URL already exists</h2>");
     }
@@ -122,33 +115,33 @@ app.get("/urls/:shortURL", (req, res) => {
   let newDataBase = urlsForUser(urlDatabase, cookie);
   let isShortURLValid = false;
   let shortURLExists = false;
-  
-  //returns true if the short URL exists in general database
-  for (let url in urlDatabase) {
-    if (url === shortURL) {
-      shortURLExists = true;
-    }
-  }
-
-  if (!shortURLExists) {
-    res.status(404).send("<h2>Requested link does not exist</h2>");
-  }
-
-  //returns true if the short URL exists in database of links for logged in user
-  for (let url in newDataBase) {
-    if (url === shortURL) {
-      isShortURLValid = true;
-    }
-  }
-
-  let templateVars = {
-    user: users[cookie],
-    longURL: longURLVal(urlDatabase, cookie),
-    shortURL: shortURL,
-    time: newDataBase[shortURL].time
-  };
 
   if (cookie) {
+    //returns true if the short URL exists in general database
+    for (let url in urlDatabase) {
+      if (url === shortURL) {
+        shortURLExists = true;
+      }
+    }
+
+    if (!shortURLExists) {
+      res.status(404).send("<h2>Requested link does not exist</h2>");
+    }
+
+    //returns true if the short URL exists in database of links for logged in user
+    for (let url in newDataBase) {
+      if (url === shortURL) {
+        isShortURLValid = true;
+      }
+    }
+
+    let templateVars = {
+      user: users[cookie],
+      longURL: longURLVal(urlDatabase, cookie),
+      shortURL: shortURL,
+      time: newDataBase[shortURL].time
+    };
+
     if (isShortURLValid) {
       res.render("urls_show", templateVars);
     } else {
@@ -157,7 +150,6 @@ app.get("/urls/:shortURL", (req, res) => {
   } else {
     res.status(404).send("<h2>You need to login first</h2>");
   }
-
 });
 
 //delete
@@ -185,22 +177,27 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   if (cookie) {
     let longURL = req.body.longURL;
 
-    if (!longURL.startsWith('http://') && !longURL.startsWith('https://')) {
-      longURL = 'https://'.concat(longURL);
-    } else {
-      longURL;
+    if (!longURL) {
+      res.status(400).send("<h2>Please enter URL</h2>");
     }
 
-    urlDatabase[req.params.shortURL].longURL = longURL;
-    let newDataBase = urlsForUser(urlDatabase, cookie);
-    let isURLValid = false;
-
-    for (let sURL in newDataBase) {
-      if (sURL === req.params.shortURL) {
-        isURLValid = true;
+    if (longURL !== '') {
+      if (!longURL.startsWith('http://') && !longURL.startsWith('https://')) {
+        longURL = 'https://'.concat(longURL);
+      } else {
+        longURL;
       }
+      urlDatabase[req.params.shortURL].longURL = longURL;
+      let newDataBase = urlsForUser(urlDatabase, cookie);
+      let isURLValid = false;
+
+      for (let sURL in newDataBase) {
+        if (sURL === req.params.shortURL) {
+          isURLValid = true;
+        }
+      }
+      isURLValid ? res.redirect("/urls") : res.status(403).send("<h2>You doesn't own this URL</h2>");
     }
-    isURLValid ? res.redirect("/urls") : res.status(403).send("<h2>You doesn't own this URL</h2>");
   } else {
     res.status(404).send("<h2>Please login first</h2>");
   }
@@ -302,12 +299,13 @@ app.post("/register", (req, res) => {
       res.status(403).send("<h2>Email exists</h2>");
     }
 
-    users[newUserID] = {};
-    users[newUserID].id = newUserID;
-    users[newUserID].email = userEmail;
-    users[newUserID].password = bcrypt.hashSync(userPassword, 10);
-    req.session["user_id"] = newUserID;
+    users[newUserID] = {
+      id: newUserID,
+      email: userEmail,
+      password: bcrypt.hashSync(userPassword, 10)
+    };
 
+    req.session["user_id"] = newUserID;
     res.redirect("/urls");
   }
 });
